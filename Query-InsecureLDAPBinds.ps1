@@ -49,7 +49,16 @@ Param (
 $InsecureLDAPBinds = @()
 
 # Grab the appropriate event entries
-$Events = Get-WinEvent -ComputerName $ComputerName -FilterHashtable @{Logname='Directory Service';Id=2889; StartTime=(get-date).AddHours("-$Hours")}
+# Add logic to catch if 0 events are found
+$Events = Get-WinEvent -ComputerName $ComputerName -FilterHashtable @{Logname='Directory Service';Id=2889; StartTime=(get-date).AddHours("-$Hours")} -ErrorAction SilentlyContinue
+
+# If statement to check for empty $Event variable and exit before writing a file
+If ($Events -eq $null)
+{
+Write-Host $InsecureLDAPBinds.Count "records saved to .\InsecureLDAPBinds.csv for Domain Controller" $ComputerName
+Write-Host "Exiting Script"
+exit
+}
 
 # Loop through each event and output the 
 ForEach ($Event in $Events) { 
